@@ -1,14 +1,16 @@
 '''
                 BY: Felipe Campelo
-                DATE: july 17, 2023
+                DATE: july 18, 2023
 
                 CODE: Single user banking script.
 '''
-
-def deposit(amount, deposits):
+def print_error(msg):
+    ''' prints error message in red '''
+    print("\033[91m", msg, "\033[0m", sep="\n")
+def deposit(amount):
     '''deposits a non negative amount to the balance'''
 
-    global balance
+    global balance, deposits
 
     # cannot deposit negative amounts
     if amount < 0:
@@ -16,31 +18,36 @@ def deposit(amount, deposits):
     else:
         balance += amount
         deposits.append(amount) # appends to deposits[]
-def withdraw(amount, withdrawals):
+def withdraw(amount):
     ''' withdraws an amount lesser than 500 to an maximun of 3 in a single run '''
 
-    global balance
+    global balance, withdrawals
+
+
+    # cannot withdraw from an empty account
+    if balance == 0:
+        print_error("Cannot withdraw from an empty account.")
 
     # cannot exceed 3/day
-    if len(withdrawals) >= MAX_WITHDRAWALS:
-        print("You cannot exceed the 3 withdrawals/day! Come back soon.")
+    elif len(withdrawals) >= MAX_WITHDRAWALS:
+        print_error(f"Cannot exceed {MAX_WITHDRAWALS} withdrawals per day.")
 
     # cannot allow negative withdrawals
     elif amount < 0: 
-        print("Cannot withdraw negative amounts.")
+        print_error("Withdrawals cannot be negative.")
     
-    # cannot exceed highest withdrawal
-    elif amount > HIGHEST_WITHDRAWAL:
-        print("Withdrawals cannot exceed $ 500.00")
+    # cannot exceed withdrawal limit
+    elif amount > WITHDRAWAL_LIMIT:
+        print_error(f"Cannot withdraw amounts bigger than {WITHDRAWAL_LIMIT}.")
 
     # cannot allow negative balance
     elif amount > balance: 
-        print(f"Cannout withdraw amounts bigger than your balance, which is $ {balance:.2f}")
+        print_error("Cannot withdraw more than the current balance. Which is $ {balance:.2f}")
     
     else: 
         balance -= amount
         withdrawals.append(amount) # appends to withrawals[] 
-def statement(deposits, withdrawals):
+def statement():
     """
     Print a statement of the client's account balance, deposits, and withdrawals.
 
@@ -53,19 +60,19 @@ def statement(deposits, withdrawals):
         str: A string containing the statement.
     """
 
-    global balance
+    global balance, deposits, withdrawals
 
     header = f"""
         \033[32m. === CLIENT === .\033[0m
         Balance: $ {balance:.2f}    Deposits: {len(deposits)}   Withdrawals: {len(withdrawals)}
     """
-    deposits = "\n".join([f"$ {deposit:.2f}" for deposit in deposits])
-    withdrawals = "\n".join([f"$ {withdrawal:.2f}" for withdrawal in withdrawals])
+    deposits_str = "\n".join([f"$ {deposit:.2f}" for deposit in deposits])
+    withdrawals_str = "\n".join([f"$ {withdrawal:.2f}" for withdrawal in withdrawals])
     return f""" {header} 
     DEPOSITS:
-{deposits}
+{deposits_str}
     WITHDRAWALS:
-{withdrawals}"""
+{withdrawals_str}"""
 
 #           === SCRIPT ===
 
@@ -78,7 +85,7 @@ MENU = '''
 
 >>> '''
 MAX_WITHDRAWALS = 3
-HIGHEST_WITHDRAWAL = 500
+WITHDRAWAL_LIMIT = 500
 
 balance = 0
 deposits, withdrawals = [], []
@@ -91,16 +98,13 @@ while option != 0:
 
     if option == 1:
         amount = int(input("Which amount do you want to deposit? $ "))
-        deposit(amount, deposits)
+        deposit(amount)
     elif option == 2:
         amount = int(input("Which amount do you want to withdraw? $ "))
-        withdraw(amount, withdrawals)
+        withdraw(amount)
     elif option == 3:
-        print(statement(deposits, withdrawals))
+        print(statement())
     elif option == 0:
         print("Until next time!")
     else:
         print("\033[91m", "\t\tInvalid option!", "\033[0m", sep="\n")
-
-
-
